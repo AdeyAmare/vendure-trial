@@ -7,9 +7,13 @@ import toggleMachine from "../machines/toggleMachine";
 import signinMachine from '../machines/signinMachine';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
+import Link from 'next/link';
+
 const SignupForm = () => {
 
     const [register] = useMutation(signupMutation)
+
+    const [errors, setErrors] = useState({})
 
     const [current, send] = useMachine(toggleMachine)
     const [state, sendEvent] = useMachine(signinMachine, {
@@ -24,8 +28,41 @@ const SignupForm = () => {
     async function handleSubmit(event) {
         event.preventDefault();
 
+        const newErrors = {};
+        const regex = new RegExp("^([A-Za-z]|[0-9])+$")
+        const regularExpression = new RegExp("/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/");
 
-        sendEvent({ type: "submit" });
+        if (!state.context.title) {
+            newErrors.title = "Name is required"
+        }
+        if (!state.context.firstName) {
+            newErrors.firstName = "First name is required"
+        }
+        if (!state.context.lastName) {
+            newErrors.lastName = "Last name is required"
+        }
+        if (!state.context.emailAddress) {
+            newErrors.emailAddress = "Email is required"
+        } else if (regex.test(state.context.emailAddress)) {
+            newErrors.emailAddress = "Email is invalid"
+        }
+        if (!state.context.phoneNumber) {
+            newErrors.phoneNumber = "Phone number is required"
+        }
+        if (!state.context.password) {
+            newErrors.password = "Password is required"
+        } else if (state.context.password.length < 8) {
+            newErrors.password = "Password must be more than 8 characters"
+        } else if (regularExpression.test(state.context.password)) {
+            newErrors.password = "Password should contain atleast one number and one special character"
+        }
+
+        setErrors(newErrors)
+
+        if (Object.keys(newErrors).length === 0) {
+            sendEvent({ type: "submit" });
+        }
+
 
 
     }
@@ -38,18 +75,39 @@ const SignupForm = () => {
                     <h2 className="font-bold text-2xl text-[#002D74]">Signup</h2>
                     <p className="text-xs mt-4 text-[#002D74]">Interested in joining our platform. Please fill out the form to create an account.</p>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                        <input className="mt-8 p-2 rounded-xl border" type="text" name="title" placeholder="Title" value={state.context.title} onChange={(event) => sendEvent({ type: 'titleChange', value: event.target.value })} />
-                        <input className="p-2 rounded-xl border" type="text" name="firstName" placeholder="First Name" value={state.context.firstName} onChange={(event) => sendEvent({ type: 'firstNameChange', value: event.target.value })} />
-                        <input className="p-2 rounded-xl border" type="text" name="lastName" placeholder="Last Name" value={state.context.lastName} onChange={(event) => sendEvent({ type: 'lastNameChange', value: event.target.value })} />
-                        <input className="p-2 rounded-xl border" type="text" name="emailAddress" placeholder="Email" value={state.context.emailAddress} onChange={(event) => sendEvent({ type: 'emailChange', value: event.target.value })} />
-                        <input className="p-2 rounded-xl border" type="text" name="phoneNumber" placeholder="Phone Number" value={state.context.phoneNumber} onChange={(event) => sendEvent({ type: 'phoneNumberChange', value: event.target.value })} />
-                        <div className="relative">
-                            <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
-                            <button onClick={() => send('TOGGLE')}>
-                                <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
-
-                            </button>
+                        <div>
+                            <input className="mt-8 p-2 rounded-xl border" type="text" name="title" placeholder="Title" value={state.context.title} onChange={(event) => sendEvent({ type: 'titleChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500">{errors.title}</div>
                         </div>
+                        <div>
+                            <input className="p-2 rounded-xl border" type="text" name="firstName" placeholder="First Name" value={state.context.firstName} onChange={(event) => sendEvent({ type: 'firstNameChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500">{errors.firstName}</div>
+                        </div>
+                        <div>
+                            <input className="p-2 rounded-xl border" type="text" name="lastName" placeholder="Last Name" value={state.context.lastName} onChange={(event) => sendEvent({ type: 'lastNameChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500">{errors.lastName}</div>
+                        </div>
+                        <div>
+                            <input className="p-2 rounded-xl border" type="text" name="emailAddress" placeholder="Email" value={state.context.emailAddress} onChange={(event) => sendEvent({ type: 'emailChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500">{errors.emailAddress}</div>
+                        </div>
+                        <div>
+                            <input className="p-2 rounded-xl border" type="text" name="phoneNumber" placeholder="Phone Number" value={state.context.phoneNumber} onChange={(event) => sendEvent({ type: 'phoneNumberChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500"> {errors.phoneNumber}</div>
+                        </div>
+
+                        <div>
+                            <div className="relative">
+                                <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
+                                <button onClick={() => send('TOGGLE')}>
+                                    <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
+
+                                </button>
+                            </div>
+                            <div className="text-xs text-red-500">{errors.password}</div>
+                        </div>
+
+
                         <button className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300" type="submit">
                             {state.matches('submitting') ? 'Submitting' : 'SignUp'}
 
@@ -62,9 +120,9 @@ const SignupForm = () => {
                     </div>
                     <div className="mt-3 text-xs flex justify-between items-center">
                         <p>Already have an account?</p>
-                        <button className="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300">
+                        <Link href="/login" className="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300">
                             Login
-                        </button>
+                        </Link>
                     </div>
 
                 </div>

@@ -6,6 +6,7 @@ import { useMachine } from "@xstate/react";
 import toggleMachine from "../machines/toggleMachine";
 import loginMachine from '../machines/loginMachine'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Link from 'next/link';
 
 
 const LoginForm = () => {
@@ -14,6 +15,8 @@ const LoginForm = () => {
 
     const [login] = useMutation(loginMutation)
     const [current, send] = useMachine(toggleMachine)
+
+    const [errors, setErrors] = useState({})
 
 
     const [state, sendEvent] = useMachine(loginMachine, {
@@ -27,7 +30,25 @@ const LoginForm = () => {
 
     async function handleSubmit(event) {
         event.preventDefault()
-        sendEvent({ type: "submit" });
+        const newErrors = {};
+        const regex = new RegExp("^([A-Za-z]|[0-9])+$")
+
+        if (!state.context.username) {
+            newErrors.emailAddress = "Email is required"
+        } else if (regex.test(state.context.username)) {
+            newErrors.emailAddress = "Email is invalid"
+        }
+
+        if (!state.context.password) {
+            newErrors.password = "Password is required"
+        }
+
+        setErrors(newErrors)
+
+        if (Object.keys(newErrors).length === 0) {
+            sendEvent({ type: "submit" });
+        }
+
     }
 
     return (
@@ -37,19 +58,25 @@ const LoginForm = () => {
                     <h2 className="font-bold text-2xl text-[#002D74]">Login</h2>
                     <p className="text-xs mt-4 text-[#002D74]">Please login to access your account</p>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                        <input className="mt-8 p-2 rounded-xl border" type="text" name="username" placeholder="Email" value={state.context.username} onChange={(event) => sendEvent({ type: 'userNameChange', value: event.target.value })} />
+                        <div>
+                            <input className="mt-8 p-2 rounded-xl border" type="text" name="username" placeholder="Email" value={state.context.username} onChange={(event) => sendEvent({ type: 'userNameChange', value: event.target.value })} />
+                            <div className="text-xs text-red-500">{errors.username}</div>
 
-
-                        <div className="relative">
-
-
-
-                            <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
-                            <button onClick={() => send('TOGGLE')}>
-                                <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
-
-                            </button>
                         </div>
+                        <div className="w-full">
+                            <div className="relative">
+                                <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
+                                <button onClick={() => send('TOGGLE')}>
+                                    <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
+
+                                </button>
+                                <div className="text-xs text-red-500">{errors.password}</div>
+
+                            </div>
+                        </div>
+
+
+
                         <button className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300" type="submit">
                             {state.matches('submitting') ? 'Submitting' : 'Login'}
                         </button>
@@ -61,7 +88,7 @@ const LoginForm = () => {
                     </div>
                     <div className="mt-3 text-xs flex justify-between items-center">
                         <p>Don't have an account?</p>
-                        <button className="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300">Sign Up</button>
+                        <Link href="/signup" className="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300">Sign Up</Link>
                     </div>
 
                 </div>
