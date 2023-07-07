@@ -31,12 +31,13 @@ const LoginForm = () => {
     async function handleSubmit(event) {
         event.preventDefault()
         const newErrors = {};
-        const regex = new RegExp("^([A-Za-z]|[0-9])+$")
+        const initialValues = {}
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
         if (!state.context.username) {
-            newErrors.emailAddress = "Email is required"
-        } else if (regex.test(state.context.username)) {
-            newErrors.emailAddress = "Email is invalid"
+            newErrors.username = "Email is required"
+        } else if (!regex.test(state.context.username)) {
+            newErrors.username = "Email is invalid"
         }
 
         if (!state.context.password) {
@@ -44,8 +45,9 @@ const LoginForm = () => {
         }
 
         setErrors(newErrors)
+        console.log(newErrors)
 
-        if (Object.keys(newErrors).length === 0) {
+        if (JSON.stringify(newErrors) === JSON.stringify(initialValues)) {
             sendEvent({ type: "submit" });
         }
 
@@ -60,8 +62,8 @@ const LoginForm = () => {
                     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                         <div>
                             <input className="mt-8 p-2 rounded-xl border" type="text" name="username" placeholder="Email" value={state.context.username} onChange={(event) => sendEvent({ type: 'userNameChange', value: event.target.value })} />
-                            <div className="text-xs text-red-500">{errors.username}</div>
-
+                            {errors.username && <div className="text-xs text-red-500">{errors.username}</div>
+                            }
                         </div>
                         <div className="w-full">
                             <div className="relative">
@@ -70,7 +72,7 @@ const LoginForm = () => {
                                     <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
 
                                 </button>
-                                <div className="text-xs text-red-500">{errors.password}</div>
+                                {errors.password && <div className="text-xs text-red-500">{errors.password}</div>}
 
                             </div>
                         </div>

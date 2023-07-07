@@ -14,6 +14,7 @@ const Verification = () => {
         event.preventDefault()
 
         const newErrors = {};
+        const initialValues = {};
 
 
         if (!token) {
@@ -22,7 +23,7 @@ const Verification = () => {
 
         setErrors(newErrors)
 
-        if (Object.keys(newErrors).length === 0) {
+        if (JSON.stringify(newErrors) === JSON.stringify(initialValues)) {
             const resp = await register({
                 variables: {
                     token: token,
@@ -49,7 +50,7 @@ const Verification = () => {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                     <div>
                         <input className="mt-8 p-2 rounded-xl border" type="text" name="username" placeholder="Verification Token" value={token} onChange={(event) => setToken(event.target.value)} />
-                        <div className="text-xs text-red-500">{errors.token}</div>
+                        {errors.token && <div className="text-xs text-red-500">{errors.token}</div>}
 
                     </div>
 
