@@ -65,7 +65,7 @@ const LoginForm = () => {
                             {errors.username && <div className="text-xs text-red-500">{errors.username}</div>
                             }
                         </div>
-                        <div className="w-full">
+                        <div>
                             <div className="relative">
                                 <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
                                 <button onClick={() => send('TOGGLE')}>
