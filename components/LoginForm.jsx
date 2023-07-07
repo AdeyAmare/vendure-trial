@@ -4,32 +4,30 @@ import React, { useState } from 'react';
 import Image from "next/image";
 import { useMachine } from "@xstate/react";
 import toggleMachine from "../machines/toggleMachine";
+import loginMachine from '../machines/loginMachine'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 
 const LoginForm = () => {
 
 
-    const [username, setUsername] = useState("")
-    const [password, setPassword] = useState("")
 
+    const [login] = useMutation(loginMutation)
     const [current, send] = useMachine(toggleMachine)
 
-    const [register] = useMutation(loginMutation)
+
+    const [state, sendEvent] = useMachine(loginMachine, {
+        context: {
+            login: login
+        }
+    })
+
 
     const Icon = current.value === 'visible' ? FaEyeSlash : FaEye;
 
     async function handleSubmit(event) {
         event.preventDefault()
-
-        const resp = await register({
-            variables: {
-                username: username,
-                password: password
-            }
-        });
-
-        console.log(resp)
+        sendEvent({ type: "submit" });
     }
 
     return (
@@ -39,20 +37,22 @@ const LoginForm = () => {
                     <h2 className="font-bold text-2xl text-[#002D74]">Login</h2>
                     <p className="text-xs mt-4 text-[#002D74]">Please login to access your account</p>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                        <input className="mt-8 p-2 rounded-xl border" type="text" placeholder="Username" value={username} onChange={(event) => setUsername(event.target.value)} />
+                        <input className="mt-8 p-2 rounded-xl border" type="text" name="username" placeholder="Email" value={state.context.username} onChange={(event) => sendEvent({ type: 'userNameChange', value: event.target.value })} />
 
 
                         <div className="relative">
 
 
 
-                            <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} />
+                            <input className="p-2 rounded-xl border w-full" type={current.value === 'visible' ? 'text' : 'password'} name="password" placeholder="Password" value={state.context.password} onChange={(event) => sendEvent({ type: 'passwordChange', value: event.target.value })} />
                             <button onClick={() => send('TOGGLE')}>
                                 <Icon className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300" />
 
                             </button>
                         </div>
-                        <button className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300" type="submit">Login</button>
+                        <button className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300" type="submit">
+                            {state.matches('submitting') ? 'Submitting' : 'Login'}
+                        </button>
                     </form>
                     <div className="mt-10 grid grid-cols-3 items-center text-gray-500">
                         <hr className="border-gray-500" />
